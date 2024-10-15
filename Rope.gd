@@ -2,10 +2,10 @@ class_name Rope
 
 extends Node2D
 
-var iterations: int = 80
-var nodes_amount: int = 100
-var nodes_separation: float = 10
-var gravity: Vector2 = Vector2(0, 100)
+@export var iterations: int = 80
+@export var nodes_amount: int = 100
+@export var nodes_separation: float = 10
+@export var gravity: Vector2 = Vector2(0, 100)
 
 @onready var line: Line2D = $"Line"
 
@@ -19,7 +19,13 @@ var end_anchor_pos: Vector2
 
 const timestep: float = 0.1
 
+var raycast_query: PhysicsRayQueryParameters2D
+
+
 func _ready() -> void:
+	raycast_query= PhysicsRayQueryParameters2D.new()
+	#raycast_query.hit_from_inside= true
+	
 	var spawn_pos: Vector2 = start_anchor_pos
 	
 	for i in range(nodes_amount):
@@ -28,11 +34,13 @@ func _ready() -> void:
 		
 		spawn_pos += Vector2(0, nodes_separation)
 
+
 func _physics_process(delta: float) -> void:
+	%"Label FPS".text= "FPS: %d" % Engine.get_frames_per_second()
 	simulate()
 	for i in range(iterations):
 		apply_constraints()
-		collision_resolution()
+		#collision_resolution()
 	
 	update_line()
 
@@ -40,7 +48,7 @@ func simulate():
 	for i in range(nodes_amount):
 		var node: VerletNode = nodes[i]
 		var temp: Vector2 = node.position
-		node.position += (node.position - node.old_position) + gravity * timestep * timestep;
+		node.position += collide_and_translate(node.position, (node.position - node.old_position) + gravity * timestep * timestep)
 		node.old_position = temp;
 
 func apply_constraints():
@@ -68,8 +76,11 @@ func pull_toward_anchor1():
 			var translate: Vector2 = direction * difference_factor * 0.9
 			
 			# Update positions
-			node_1.position += translate
-			node_2.position -= translate
+			var final_translate: Vector2= collide_and_translate(node_1.position, translate)
+			node_1.position += final_translate
+			
+			final_translate= collide_and_translate(node_2.position, -final_translate)
+			node_2.position += final_translate
 
 func pull_toward_anchor2():
 	if end_anchor:
@@ -92,8 +103,23 @@ func pull_toward_anchor2():
 			var translate: Vector2 = direction * difference_factor * 0.9
 			
 			# Update positions
-			node_1.position += translate
-			node_2.position -= translate
+			var final_translate: Vector2= collide_and_translate(node_1.position, translate)
+			node_1.position += final_translate
+			
+			final_translate= collide_and_translate(node_2.position, -final_translate)
+			node_2.position += final_translate
+
+func collide_and_translate(origin: Vector2, motion: Vector2)-> Vector2:
+	if motion.is_zero_approx():
+		return Vector2.ZERO
+		
+	raycast_query.from= origin
+	raycast_query.to= origin + motion
+	var result: Dictionary= get_world_2d().direct_space_state.intersect_ray(raycast_query)
+	
+	if not result:
+		return motion
+	return (result.position - origin) + result.normal * motion.length()
 
 func is_node_colliding(node: VerletNode) -> bool:
 	var space_state = get_world_2d().direct_space_state
