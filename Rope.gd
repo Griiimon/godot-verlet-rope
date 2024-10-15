@@ -40,7 +40,6 @@ func _physics_process(delta: float) -> void:
 	simulate()
 	for i in range(iterations):
 		apply_constraints()
-		#collision_resolution()
 	
 	update_line()
 
@@ -132,36 +131,6 @@ func is_node_colliding(node: VerletNode) -> bool:
 		return true
 	else: 
 		return false
-	
-
-func collision_resolution():
-	var space_state = get_world_2d().direct_space_state
-	for i in range(nodes_amount - 1):
-		# Make a physics query
-		var query_params := PhysicsPointQueryParameters2D.new()
-		query_params.position = nodes[i].position
-		var results: Array[Dictionary] = space_state.intersect_point(query_params, 1)
-		
-		if results.size() > 0:
-			var collider: CollisionObject2D = results[0].get("collider")
-			var shape_index: int = results[0].get("shape")
-			var collision_shape: CollisionShape2D = CollisionShape2D.new()
-			
-			# Get the collision shape
-			for child in collider.get_children():
-				if child is CollisionShape2D:
-					collision_shape = child
-					break
-			
-			var edge_point: Vector2 = get_closest_point_on_shape(
-				nodes[i].position,
-				collision_shape.shape,
-				collision_shape.global_position
-			)
-			
-			nodes[i].position = edge_point
-	
-
 
 func update_line():
 	var display_nodes: PackedVector2Array = []
@@ -169,45 +138,6 @@ func update_line():
 		display_nodes.append(node.position)
 	
 	line.points = display_nodes
-
-
-func get_closest_point_on_shape(point: Vector2, shape: Shape2D, shape_pos: Vector2) -> Vector2:
-	shape = shape as CircleShape2D
-	var direction: Vector2 = point - shape_pos
-	return shape_pos + direction.normalized() * shape.radius
-	
-	match shape:
-		WorldBoundaryShape2D:
-			shape = shape as WorldBoundaryShape2D
-		
-		SegmentShape2D:
-			shape = shape as SegmentShape2D
-			return Geometry2D.get_closest_point_to_segment(point, shape.a + shape_pos, shape.b + shape_pos)
-		
-		SeparationRayShape2D:
-			shape = shape as SeparationRayShape2D
-		
-		CircleShape2D:
-			print("circle")
-			shape = shape as CircleShape2D
-			#var direction: Vector2 = point - shape_pos
-			#return shape_pos + direction.normalized() * shape.radius
-		
-		RectangleShape2D:
-			shape = shape as RectangleShape2D
-		
-		CapsuleShape2D:
-			shape = shape as CapsuleShape2D
-		
-		ConvexPolygonShape2D:
-			shape = shape as ConvexPolygonShape2D
-		
-		ConcavePolygonShape2D:
-			shape = shape as ConcavePolygonShape2D
-	
-	return Vector2(0, 0)
-
-
 
 class VerletNode:
 	const STEP_TIME: float = 0.01
