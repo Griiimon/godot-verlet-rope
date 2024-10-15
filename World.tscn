@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://qk38r0usjhhn"]
+[gd_scene load_steps=6 format=3 uid="uid://qk38r0usjhhn"]
 
 [ext_resource type="Script" path="res://Rope.gd" id="1_cfn6o"]
 [ext_resource type="Texture2D" uid="uid://6t82mu1ul6ka" path="res://Icon.svg" id="2_pxm5u"]
@@ -6,6 +6,9 @@
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_as3t4"]
 radius = 33.2415
+
+[sub_resource type="LabelSettings" id="LabelSettings_2u2by"]
+font_size = 40
 
 [node name="World" type="Node2D"]
 
@@ -32,6 +35,8 @@ shape = SubResource("CircleShape2D_as3t4")
 
 [node name="Rope" type="Node2D" parent="."]
 script = ExtResource("1_cfn6o")
+iterations = 40
+nodes_amount = 50
 
 [node name="Line" type="Line2D" parent="Rope"]
 joint_mode = 2
@@ -41,3 +46,15 @@ position = Vector2(365.5, 435.5)
 scale = Vector2(0.523438, 0.523438)
 texture = ExtResource("2_pxm5u")
 script = ExtResource("3_unop8")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Label FPS" type="Label" parent="CanvasLayer"]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_bottom = 23.0
+grow_horizontal = 0
+label_settings = SubResource("LabelSettings_2u2by")
