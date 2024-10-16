@@ -2,10 +2,10 @@ class_name Rope
 
 extends Node2D
 
-var iterations: int = 80
-var nodes_amount: int = 100
-var nodes_separation: float = 10
-var gravity: Vector2 = Vector2(0, 100)
+@export var iterations: int = 80
+@export var nodes_amount: int = 100
+@export var nodes_separation: float = 10
+@export var gravity: Vector2 = Vector2(0, 100)
 
 @onready var line: Line2D = $"Line"
 
@@ -146,41 +146,68 @@ func update_line():
 
 
 func get_closest_point_on_shape(point: Vector2, shape: Shape2D, shape_pos: Vector2) -> Vector2:
-	shape = shape as CircleShape2D
-	var direction: Vector2 = point - shape_pos
-	return shape_pos + direction.normalized() * shape.radius
 	
-	match shape:
-		WorldBoundaryShape2D:
-			shape = shape as WorldBoundaryShape2D
+	if shape is	WorldBoundaryShape2D:
+		shape = shape as WorldBoundaryShape2D
+		return Geometry2D.get_closest_point_to_segment_uncapped(point, shape.normal.rotated(PI / 4) + shape_pos, shape.normal.rotated(-PI / 4) + shape_pos)
 		
-		SegmentShape2D:
-			shape = shape as SegmentShape2D
-			return Geometry2D.get_closest_point_to_segment(point, shape.a + shape_pos, shape.b + shape_pos)
+	elif shape is SegmentShape2D:
+		# a point cannot be inside a SegmentShape
+		assert(false, "not implemented")
 		
-		SeparationRayShape2D:
-			shape = shape as SeparationRayShape2D
+	elif shape is SeparationRayShape2D:
+		# its not a real collision shape
+		assert(false, "not implemented")
 		
-		CircleShape2D:
-			print("circle")
-			shape = shape as CircleShape2D
-			#var direction: Vector2 = point - shape_pos
-			#return shape_pos + direction.normalized() * shape.radius
+	elif shape is CircleShape2D:
+		shape = shape as CircleShape2D
+		var direction: Vector2 = point - shape_pos
+		return shape_pos + direction.normalized() * shape.radius
 		
-		RectangleShape2D:
-			shape = shape as RectangleShape2D
+	elif shape is RectangleShape2D:
+		shape = shape as RectangleShape2D
+		var points: PackedVector2Array
+		points.append(-shape.size / 2)
+		points.append(Vector2(shape.size.x / 2, -shape.size.y / 2))
+		points.append(shape.size / 2)
+		points.append(Vector2(-shape.size.x / 2, shape.size.y / 2))
 		
-		CapsuleShape2D:
-			shape = shape as CapsuleShape2D
+		return get_closes_point_on_polygon(point, shape_pos, points)
+
+	elif shape is CapsuleShape2D:
+		assert(false, "not implemented")
+		shape = shape as CapsuleShape2D
 		
-		ConvexPolygonShape2D:
-			shape = shape as ConvexPolygonShape2D
+	elif shape is ConvexPolygonShape2D:
+		shape = shape as ConvexPolygonShape2D
+		return get_closes_point_on_polygon(point, shape_pos, shape.points)
 		
-		ConcavePolygonShape2D:
-			shape = shape as ConcavePolygonShape2D
+	elif shape is ConcavePolygonShape2D:
+		shape = shape as ConcavePolygonShape2D
+		return get_closes_point_on_polygon(point, shape_pos, shape.points)
 	
 	return Vector2(0, 0)
 
+
+func get_closes_point_on_polygon(point: Vector2, polygon_pos: Vector2, polygon: PackedVector2Array):
+	#assert(Geometry2D.is_point_in_polygon(point - polygon_pos, polygon), str(point))
+	var nearest= null
+	var closest_point: Vector2
+	var prev_point= null
+	
+	for polygon_point: Vector2 in polygon:
+		if prev_point == null:
+			prev_point= polygon[-1]
+			
+		var close_point: Vector2= Geometry2D.get_closest_point_to_segment(point, prev_point + polygon_pos, polygon_point + polygon_pos)
+		var distance: float= (point).distance_to(close_point)
+		if nearest == null or distance < nearest:
+			nearest= distance
+			closest_point= close_point
+			
+		prev_point= polygon_point
+
+	return closest_point
 
 
 class VerletNode:
