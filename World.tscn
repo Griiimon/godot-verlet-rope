@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://qk38r0usjhhn"]
+[gd_scene load_steps=8 format=3 uid="uid://qk38r0usjhhn"]
 
 [ext_resource type="Script" path="res://Rope.gd" id="1_cfn6o"]
 [ext_resource type="Texture2D" uid="uid://6t82mu1ul6ka" path="res://Icon.svg" id="2_pxm5u"]
@@ -7,10 +7,19 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_as3t4"]
 radius = 33.2415
 
+[sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_bnsbj"]
+points = PackedVector2Array(-32, 0, 32, 0, 0, -64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mhocf"]
+size = Vector2(64, 64)
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_tglpp"]
+normal = Vector2(-1, 0)
+
 [node name="World" type="Node2D"]
 
 [node name="Obstacle1" type="StaticBody2D" parent="."]
-position = Vector2(519, 310)
+position = Vector2(549, 493)
 
 [node name="Icon" type="Sprite2D" parent="Obstacle1"]
 scale = Vector2(0.53125, 0.53125)
@@ -19,25 +28,49 @@ texture = ExtResource("2_pxm5u")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacle1"]
 shape = SubResource("CircleShape2D_as3t4")
 
+[node name="Obstacle4" type="StaticBody2D" parent="."]
+position = Vector2(759, 263)
+
+[node name="Icon" type="Sprite2D" parent="Obstacle4"]
+scale = Vector2(0.53125, 0.53125)
+texture = ExtResource("2_pxm5u")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacle4"]
+position = Vector2(0, 32)
+shape = SubResource("ConvexPolygonShape2D_bnsbj")
+
+[node name="Obstacle3" type="StaticBody2D" parent="."]
+position = Vector2(332, 232)
+
+[node name="Icon" type="Sprite2D" parent="Obstacle3"]
+scale = Vector2(0.53125, 0.53125)
+texture = ExtResource("2_pxm5u")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacle3"]
+shape = SubResource("RectangleShape2D_mhocf")
+
 [node name="Obstacle2" type="StaticBody2D" parent="."]
-position = Vector2(731, 325)
+position = Vector2(969, 325)
 
 [node name="Icon" type="Sprite2D" parent="Obstacle2"]
 position = Vector2(1.00002, 6.07967e-06)
-scale = Vector2(0.527588, 0.527588)
+scale = Vector2(0.01, 100)
 texture = ExtResource("2_pxm5u")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacle2"]
-shape = SubResource("CircleShape2D_as3t4")
+shape = SubResource("WorldBoundaryShape2D_tglpp")
 
 [node name="Rope" type="Node2D" parent="."]
 script = ExtResource("1_cfn6o")
+iterations = 40
+nodes_amount = 50
 
 [node name="Line" type="Line2D" parent="Rope"]
 joint_mode = 2
 
 [node name="Anchor1" type="Sprite2D" parent="."]
-position = Vector2(365.5, 435.5)
+self_modulate = Color(1, 0.960784, 0.290196, 1)
+position = Vector2(99.0001, 324)
 scale = Vector2(0.523438, 0.523438)
 texture = ExtResource("2_pxm5u")
 script = ExtResource("3_unop8")
